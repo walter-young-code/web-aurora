@@ -1,7 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 
 /** 画廊传给 Lightbox 的最小信息：src + 已按语言解析完的 alt（可缺省，逐张回落翻译） */
@@ -21,12 +22,19 @@ type Props = {
 /**
  * 摄影站的核心体验：键盘可完全操作、焦点圈定在弹层内、
  * 只渲染当前张与相邻两张（相邻预取），移动端左右滑动切换。
+ *
+ * 必须经 Portal 挂到 body：Lightbox 的调用方都嵌在 ScrollReveal 里，
+ * GSAP 入场动画在祖先元素上留下的 transform 会成为 fixed 的包含块，
+ * 导致弹层随页面滚动偏移、溢出部分无法滚回。
  */
 export function Lightbox({ images, index, altPrefix, onClose, onIndexChange }: Props) {
   const t = useTranslations('lightbox');
   const dialogRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const restoreFocusTo = useRef<HTMLElement | null>(null);
   const touchStartX = useRef<number | null>(null);
+  // Portal 目标只在客户端存在，首帧不渲染，避免 SSR  hydration 不匹配
+  const [mounted, setMounted] = useState(false);
 
   const total = images.length;
   const go = useCallback(
@@ -35,15 +43,31 @@ export function Lightbox({ images, index, altPrefix, onClose, onIndexChange }: P
   );
 
   useEffect(() => {
+    setMounted(true);
     restoreFocusTo.current = document.activeElement as HTMLElement | null;
-    dialogRef.current?.focus();
+    const scrollbarGap = window.innerWidth - document.documentElement.clientWidth;
     const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
     document.body.style.overflow = 'hidden';
+    // body overflow:hidden 会抽走滚动条，补一个等宽 padding 防止背后内容横跳
+    if (scrollbarGap > 0) document.body.style.paddingRight = `${scrollbarGap}px`;
     return () => {
       document.body.style.overflow = previousOverflow;
-      restoreFocusTo.current?.focus();
+      document.body.style.paddingRight = previousPaddingRight;
+      // preventScroll：默认 focus 会把触发按钮滚进视野，关闭弹层时应保持原滚动位置
+      restoreFocusTo.current?.focus({ preventScroll: true });
     };
   }, []);
+
+  // 换张时重置滚动位置，避免上一张滚到半途的状态带到新图上
+  useEffect(() => {
+    stageRef.current?.scrollTo({ top: 0, left: 0 });
+  }, [index]);
+
+  // Portal 首帧之后 dialog 才存在，焦点落到弹层自身
+  useEffect(() => {
+    if (mounted) dialogRef.current?.focus();
+  }, [mounted]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -72,7 +96,9 @@ export function Lightbox({ images, index, altPrefix, onClose, onIndexChange }: P
     (index + 1) % total,
   ];
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       ref={dialogRef}
       role="dialog"
@@ -108,7 +134,11 @@ export function Lightbox({ images, index, altPrefix, onClose, onIndexChange }: P
         </button>
       </div>
 
-      <div className="relative flex flex-1 items-center justify-center overflow-hidden px-sm pb-lg">
+      {/* grid + place-items 居中在溢出时是「安全居中」：不会像 flex 那样把顶部/左侧裁成滚不回去的死角 */}
+      <div
+        ref={stageRef}
+        className="relative grid flex-1 place-items-center overflow-auto px-sm pb-lg"
+      >
         <Image
           key={images[index].src}
           src={images[index].src}
@@ -116,7 +146,7 @@ export function Lightbox({ images, index, altPrefix, onClose, onIndexChange }: P
           width={1600}
           height={1100}
           sizes="100vw"
-          className="max-h-full w-auto object-contain"
+          className="max-h-full w-auto min-w-0 shrink-0 object-contain"
         />
         {neighbours.map((neighbour) => (
           <Image
@@ -147,7 +177,8 @@ export function Lightbox({ images, index, altPrefix, onClose, onIndexChange }: P
           {t('next')} →
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
