@@ -1,0 +1,24 @@
+# 构建上下文瘦身
+node_modules
+.next
+out
+
+# 环境密钥与本地库文件绝不进镜像（容器以 -e 注入）
+.env
+.env.*
+!.env.example
+
+# Prisma 本地产物：迁移在运行期于卷内重建
+prisma/*.db
+prisma/*.db-journal
+
+# 生成物在 builder 内重新生成
+src/generated
+
+# 杂项
+*.log
+.git
+.gitignore
+README.md
+.dockerignore
+Dockerfile

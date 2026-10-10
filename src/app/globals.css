@@ -1,0 +1,311 @@
+@import "tailwindcss";
+
+/*
+ * 设计 token 的唯一事实源就是本文件（@theme 与 :root 变量）。
+ * 任何组件里出现新的字面量数值都属于设计债。
+ */
+@theme {
+  /* 颜色 token 走 @theme inline 间接引用（见下方），以支持浅色整组换阶 */
+
+  /* Fonts — 拉丁展示字体自托管，中文回落系统 */
+  --font-display: var(--font-space-grotesk), "Space Grotesk", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  --font-sans: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI",
+    Roboto, sans-serif;
+
+  /* Type scale */
+  --text-display-hero: clamp(3rem, 7vw, 6rem);
+  --text-display-hero--line-height: 1.05;
+  --text-display-hero--letter-spacing: -0.02em;
+  --text-display-hero--font-weight: 500;
+
+  --text-display-hero-sub: clamp(1.25rem, 2.2vw, 1.75rem);
+  --text-display-hero-sub--line-height: 1.3;
+  --text-display-hero-sub--letter-spacing: -0.01em;
+  --text-display-hero-sub--font-weight: 400;
+
+  --text-heading-section: clamp(2rem, 4vw, 3rem);
+  --text-heading-section--line-height: 1.15;
+  --text-heading-section--letter-spacing: -0.015em;
+  --text-heading-section--font-weight: 500;
+
+  --text-heading-card: 1.25rem;
+  --text-heading-card--line-height: 1.3;
+  --text-heading-card--font-weight: 500;
+
+  --text-body-md: 1.0625rem;
+  --text-body-md--line-height: 1.7;
+
+  --text-body-prose: 1.0625rem;
+  --text-body-prose--line-height: 1.75;
+
+  --text-nav-link: 0.9375rem;
+  --text-nav-link--line-height: 1.4;
+  --text-nav-link--font-weight: 500;
+
+  --text-meta-caption: 0.8125rem;
+  --text-meta-caption--line-height: 1.5;
+  --text-meta-caption--letter-spacing: 0.05em;
+
+  --text-meta-caption-en: 0.8125rem;
+  --text-meta-caption-en--line-height: 1.5;
+  --text-meta-caption-en--letter-spacing: 0.08em;
+  --text-meta-caption-en--font-weight: 500;
+
+  /* Shapes — 媒体卡接近直角，按钮/标签用胶囊 */
+  --radius-card: 4px;
+  --radius-badge: 2px;
+  --radius-chip: 9999px;
+
+  /* Spacing — 4 / 8 / 16 / 24 / 40 / 64 / 96 / 160 */
+  --spacing-xxs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 40px;
+  --spacing-xl: 64px;
+  --spacing-xxl: 96px;
+  --spacing-section: 160px;
+  --spacing-gutter-mobile: 20px;
+  --spacing-gutter-desktop: 48px;
+
+  /* Layout & media ratios — 封面只允许 3:2 与 2:3 */
+  --container-page: 1440px;
+  --aspect-cover-landscape: 3 / 2;
+  --aspect-cover-portrait: 2 / 3;
+  --aspect-video: 16 / 9;
+
+  /* Motion — GSAP power2.out 的 CSS 近似，仅用于非 GSAP 过渡 */
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/*
+ * 颜色 token 走「间接引用 + 整组换阶」：@theme inline 让工具类解析到运行时变量 --c-*，
+ * :root 给暗色阶（默认，也是 /admin 形态），html[data-theme="light"] 覆盖为浅色阶。
+ * 组件永远只写 bg-bg / text-accent，不感知主题。
+ */
+@theme inline {
+  --color-bg: var(--c-bg);
+  --color-bg-elevated: var(--c-bg-elevated);
+  --color-bg-hover: var(--c-bg-hover);
+  --color-line: var(--c-line);
+  --color-text-primary: var(--c-text-primary);
+  --color-text-secondary: var(--c-text-secondary);
+  --color-text-muted: var(--c-text-muted);
+  --color-text-disabled: var(--c-text-disabled);
+  --color-accent: var(--c-accent);
+  --color-accent-dim: var(--c-accent-dim);
+  --color-on-primary: var(--c-on-primary);
+  --color-danger: var(--c-danger);
+}
+
+:root {
+  --c-bg: #0a0a0b;
+  --c-bg-elevated: #131316;
+  --c-bg-hover: #1b1b20;
+  --c-line: #26262c;
+  --c-text-primary: #f4f4f5;
+  --c-text-secondary: #a1a1aa;
+  --c-text-muted: #6b6b76;
+  --c-text-disabled: #4a4a52;
+  --c-accent: #e8b57e;
+  --c-accent-dim: #b98a5a;
+  --c-on-primary: #0a0a0b;
+  --c-danger: #e0836f;
+}
+
+html[data-theme='light'] {
+  --c-bg: #f4f2ee;
+  --c-bg-elevated: #ffffff;
+  --c-bg-hover: #ecebe6;
+  --c-line: #e2ded4;
+  --c-text-primary: #17171a;
+  --c-text-secondary: #4f4f57;
+  --c-text-muted: #7a7a81;
+  --c-text-disabled: #b3b3ba;
+  --c-accent: #8f5a22;
+  --c-accent-dim: #b98a5a;
+  --c-on-primary: #ffffff;
+  --c-danger: #b0492f;
+}
+
+/*
+ * Motion — 两档时长是硬约束。
+ * Tailwind v4 没有 duration-* 的 theme namespace，因此用 token 值包一层工具类，
+ * 组件里写 duration-micro，不允许出现 duration-300 这类魔法数字。
+ */
+:root {
+  --duration-enter: 0.6s;
+  --duration-micro: 0.2s;
+  --duration-hover: 0.4s;
+  --duration-image: 0.3s;
+  --duration-kenburns: 20s;
+}
+
+.duration-micro {
+  transition-duration: var(--duration-micro);
+}
+
+.duration-hover {
+  transition-duration: var(--duration-hover);
+}
+
+.duration-enter {
+  transition-duration: var(--duration-enter);
+}
+
+.duration-image {
+  transition-duration: var(--duration-image);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  html[data-theme='light'] {
+    color-scheme: light;
+  }
+
+  /* 按 locale 换字体栈：英文态正文用拉丁展示字体，中文态一律系统字体 */
+  html[lang="en"] {
+    --font-sans: var(--font-space-grotesk), "Space Grotesk", -apple-system,
+      sans-serif;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  /* 焦点环全站唯一：琥珀 2px，偏移 2px */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-dim);
+    color: var(--color-on-primary);
+  }
+}
+
+/* 内容容器：1440px + 桌面 48 / 移动 20 的左右留白 */
+.page-container {
+  width: 100%;
+  max-width: var(--container-page);
+  margin-inline: auto;
+  padding-inline: var(--spacing-gutter-mobile);
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    padding-inline: var(--spacing-gutter-desktop);
+  }
+}
+
+/* 全站一层静态噪点，压在内容之上、弹层之下；不随滚动位移 */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* 主题开关图标：暗色显太阳（切到浅色），浅色显月亮。纯 CSS 驱动，组件不持有主题 state */
+.theme-toggle .i-moon {
+  display: none;
+}
+
+html[data-theme='light'] .theme-toggle .i-sun {
+  display: none;
+}
+
+html[data-theme='light'] .theme-toggle .i-moon {
+  display: inline;
+}
+
+/* 封面主色调占位：脚本提取的主色写进 --cover-color，图片淡入接管 */
+.cover-placeholder {
+  background-color: var(--cover-color, var(--color-bg-elevated));
+}
+
+.cover-image-loaded {
+  opacity: 1;
+  transition: opacity var(--duration-image) var(--ease-out-soft);
+}
+
+/* 首屏：svh 避开移动端地址栏；Ken Burns 只允许出现在 Hero 底图 */
+.hero-full {
+  min-height: 100svh;
+}
+
+@keyframes ken-burns {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.06) translate3d(0, -1%, 0);
+  }
+}
+
+.hero-ken-burns {
+  animation: ken-burns var(--duration-kenburns) linear forwards;
+}
+
+/*
+ * Hero 文案入场：与滚动无关的一次性动画，所以留在 CSS 里而不是交给 GSAP。
+ * gsap.from({autoAlpha: 0}) 在 React 19 的挂载/回退竞争下会把元素永久停在 opacity:0，
+ * 生产构建里实测过首屏标题整段消失——首屏文字不该有任何被动画卡住的可能。
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-copy > * {
+    opacity: 0;
+    animation: hero-enter var(--duration-enter) var(--ease-out-soft) forwards;
+  }
+
+  .hero-copy > :nth-child(1) { animation-delay: 0.1s; }
+  .hero-copy > :nth-child(2) { animation-delay: 0.18s; }
+  .hero-copy > :nth-child(3) { animation-delay: 0.26s; }
+  .hero-copy > :nth-child(4) { animation-delay: 0.34s; }
+  .hero-copy > :nth-child(5) { animation-delay: 0.42s; }
+}
+
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 降级：reduced-motion 下直接终态，位移与缩放全部取消（GSAP 侧另有 matchMedia 守卫） */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .hero-ken-burns {
+    animation: none;
+    transform: none;
+  }
+
+  .cover-image-loaded {
+    transition: none;
+  }
+}

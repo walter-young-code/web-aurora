@@ -1,0 +1,293 @@
+[
+  {
+    "slug": "ridgeline-dawn",
+    "title": {
+      "zh": "山脊之晨",
+      "en": "Ridge at Dawn"
+    },
+    "summary": {
+      "zh": "凌晨四点上到山脊，等云雾从谷地里退场。",
+      "en": "Up on the ridge at four, waiting for the fog to leave the valley."
+    },
+    "type": "photography",
+    "cover": "/media/works/ridgeline-dawn/cover.jpg",
+    "coverRatio": 1.5,
+    "tags": {
+      "zh": [
+        "风光",
+        "山"
+      ],
+      "en": [
+        "Landscape",
+        "Mountains"
+      ]
+    },
+    "tagKeys": [
+      "landscape",
+      "mountains"
+    ],
+    "createdAt": "2025-05-18",
+    "featured": true,
+    "order": 1,
+    "dominantColor": "#4d4d4d"
+  },
+  {
+    "slug": "harbour-after-dark",
+    "title": {
+      "zh": "港湾夜航",
+      "en": "Harbour After Dark"
+    },
+    "summary": {
+      "zh": "码头灯在水面上碎成两条，船靠岸时才有声音。",
+      "en": "Dock lights break into two on the water; sound arrives only when the boat berths."
+    },
+    "type": "photography",
+    "cover": "/media/works/harbour-after-dark/cover.jpg",
+    "coverRatio": 0.67,
+    "tags": {
+      "zh": [
+        "城市",
+        "夜景"
+      ],
+      "en": [
+        "City",
+        "Night"
+      ]
+    },
+    "tagKeys": [
+      "city",
+      "night"
+    ],
+    "createdAt": "2025-08-02",
+    "featured": false,
+    "order": 2,
+    "dominantColor": "#082828"
+  },
+  {
+    "slug": "quiet-objects",
+    "title": {
+      "zh": "静物与光",
+      "en": "Quiet Objects"
+    },
+    "summary": {
+      "zh": "窗边的一桌器物，用一整个下午只等一种光。",
+      "en": "A table of things by the window, one afternoon spent waiting for a single light."
+    },
+    "type": "photography",
+    "cover": "/media/works/quiet-objects/cover.jpg",
+    "coverRatio": 1.5,
+    "tags": {
+      "zh": [
+        "静物",
+        "光"
+      ],
+      "en": [
+        "Still Life",
+        "Light"
+      ]
+    },
+    "tagKeys": [
+      "still-life",
+      "light"
+    ],
+    "createdAt": "2024-11-20",
+    "featured": false,
+    "order": 3,
+    "dominantColor": "#282818"
+  },
+  {
+    "slug": "metro-strangers",
+    "title": {
+      "zh": "四号线上",
+      "en": "Strangers on Line 4"
+    },
+    "summary": {
+      "zh": "车厢里的人各自构成一个方向，我只负责经过。",
+      "en": "Every passenger faces a different way; my job is only to pass through."
+    },
+    "type": "photography",
+    "cover": "/media/works/metro-strangers/cover.jpg",
+    "coverRatio": 0.67,
+    "tags": {
+      "zh": [
+        "人像",
+        "街头"
+      ],
+      "en": [
+        "Portrait",
+        "Street"
+      ]
+    },
+    "tagKeys": [
+      "portrait",
+      "street"
+    ],
+    "createdAt": "2025-03-09",
+    "featured": false,
+    "order": 4,
+    "dominantColor": "#282818"
+  },
+  {
+    "slug": "salt-flats",
+    "title": {
+      "zh": "盐泽",
+      "en": "Salt Flats"
+    },
+    "summary": {
+      "zh": "地平线被抹平以后，影子成了唯一的方向感。",
+      "en": "Once the horizon is erased, the shadow is the only sense of direction left."
+    },
+    "type": "photography",
+    "cover": "/media/works/salt-flats/cover.jpg",
+    "coverRatio": 1.5,
+    "tags": {
+      "zh": [
+        "风光",
+        "荒野"
+      ],
+      "en": [
+        "Landscape",
+        "Wilderness"
+      ]
+    },
+    "tagKeys": [
+      "landscape",
+      "wilderness"
+    ],
+    "createdAt": "2024-06-01",
+    "featured": false,
+    "order": 5,
+    "dominantColor": "#4d4d4d"
+  },
+  {
+    "slug": "dune-veins",
+    "title": {
+      "zh": "沙丘脉络",
+      "en": "Dune Veins"
+    },
+    "summary": {
+      "zh": "风每天重写一次沙脊，照片只是它某一天的草稿。",
+      "en": "Wind rewrites the ridge daily; the photograph is only one day's draft."
+    },
+    "type": "photography",
+    "cover": "/media/works/dune-veins/cover.jpg",
+    "coverRatio": 0.67,
+    "tags": {
+      "zh": [
+        "风光",
+        "抽象"
+      ],
+      "en": [
+        "Landscape",
+        "Abstract"
+      ]
+    },
+    "tagKeys": [
+      "landscape",
+      "abstract"
+    ],
+    "createdAt": "2026-01-14",
+    "featured": false,
+    "order": 6,
+    "dominantColor": "#3f4d4d"
+  },
+  {
+    "slug": "city-in-motion",
+    "title": {
+      "zh": "城市律动",
+      "en": "City in Motion"
+    },
+    "summary": {
+      "zh": "从首班车到末班车的十二小时，压成四分钟的节奏练习。",
+      "en": "Twelve hours from first to last train, cut into a four-minute rhythm study."
+    },
+    "type": "video",
+    "cover": "/media/works/city-in-motion/cover.jpg",
+    "coverRatio": 1.5,
+    "tags": {
+      "zh": [
+        "城市",
+        "短片"
+      ],
+      "en": [
+        "City",
+        "Short Film"
+      ]
+    },
+    "tagKeys": [
+      "city",
+      "short-film"
+    ],
+    "createdAt": "2025-10-27",
+    "featured": true,
+    "order": 7,
+    "duration": "04:12",
+    "dominantColor": "#182828"
+  },
+  {
+    "slug": "atelier-notes",
+    "title": {
+      "zh": "工作室手记",
+      "en": "Atelier Notes"
+    },
+    "summary": {
+      "zh": "一间十二平米的房间如何容纳三种手艺。",
+      "en": "How a twelve-square-metre room holds three crafts at once."
+    },
+    "type": "video",
+    "cover": "/media/works/atelier-notes/cover.jpg",
+    "coverRatio": 0.67,
+    "tags": {
+      "zh": [
+        "纪录",
+        "手作"
+      ],
+      "en": [
+        "Documentary",
+        "Craft"
+      ]
+    },
+    "tagKeys": [
+      "documentary",
+      "craft"
+    ],
+    "createdAt": "2025-12-05",
+    "featured": false,
+    "order": 8,
+    "duration": "12:45",
+    "dominantColor": "#182828"
+  },
+  {
+    "slug": "highland-timelapse",
+    "title": {
+      "zh": "高原延时",
+      "en": "Highland Timelapse"
+    },
+    "summary": {
+      "zh": "三天的云、光与雪，落在两分半钟里。",
+      "en": "Three days of cloud, light and snow, condensed into two and a half minutes."
+    },
+    "type": "video",
+    "cover": "/media/works/highland-timelapse/cover.jpg",
+    "coverRatio": 1.5,
+    "tags": {
+      "zh": [
+        "风光",
+        "延时"
+      ],
+      "en": [
+        "Landscape",
+        "Timelapse"
+      ]
+    },
+    "tagKeys": [
+      "landscape",
+      "timelapse"
+    ],
+    "createdAt": "2026-02-19",
+    "featured": false,
+    "order": 9,
+    "duration": "02:30",
+    "dominantColor": "#383828"
+  }
+]

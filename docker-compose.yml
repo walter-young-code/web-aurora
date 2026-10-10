@@ -1,0 +1,35 @@
+# Aurora 单容器部署：构建 Next.js standalone 镜像，
+# 数据（SQLite）与上传媒体各挂一个命名卷，容器重建成卷数据不丢。
+# 敏感值从同目录 .env 读取（参考 .env.example）；NEXT_PUBLIC_SITE_URL/BETTER_AUTH_URL 换成你的域名。
+services:
+  aurora:
+    build:
+      context: .
+      args:
+        # sitemap/robots/canonical 在镜像构建期烘焙：域名必须 build 时传入（与运行期 environment 同源）
+        NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:-https://example.com}'
+    image: aurora:latest
+    container_name: aurora
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      # 卷内绝对路径：start.sh 首启会 mkdir 并从镜像 seed.db 自举、再 migrate deploy
+      DATABASE_URL: 'file:/data/aurora.db'
+      # 上传落盘目录，同时也是 Next 对外提供 /media/* 的 public/media
+      MEDIA_DIR: '/app/public/media'
+      # 站点绝对地址：sitemap / OG / 结构化数据 / Better Auth 回跳都以此为准
+      NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:-https://example.com}'
+      BETTER_AUTH_URL: '${BETTER_AUTH_URL:-https://example.com}'
+      # 会话签名密钥：必须由外部提供强随机值，缺失即拒绝启动（防误用默认值上线）
+      AUTH_SECRET: '${AUTH_SECRET:?请在 .env 中设置足够随机的 AUTH_SECRET}'
+      # 管理员账号（可选）：每次启动幂等补建，留空或已存在则跳过
+      ADMIN_EMAIL: '${ADMIN_EMAIL:-}'
+      ADMIN_PASSWORD: '${ADMIN_PASSWORD:-}'
+    volumes:
+      - aurora-db:/data
+      - aurora-media:/app/public/media
+
+volumes:
+  aurora-db:
+  aurora-media:

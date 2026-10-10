@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "site": {
+      "title": "Your Name — Personal Portfolio",
+      "description": "A personal portfolio led by images and video: photography, short films, and recommendations."
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "works": "Works",
+    "recommendations": "Recommendations",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "sections": "Site sections",
+    "language": "Language",
+    "themeToggle": "Toggle light/dark theme",
+    "skipToContent": "Skip to main content"
+  },
+  "hero": {
+    "scroll": "Scroll down",
+    "viewWorks": "View all works"
+  },
+  "home": {
+    "featured": "Selected Works",
+    "allWorks": "View all →",
+    "about": "About",
+    "aboutCta": "More works",
+    "recommended": "Recommended",
+    "allRecommendations": "View all →"
+  },
+  "works": {
+    "title": "Works",
+    "lead": "Photography and short films, newest first.",
+    "filterAll": "All",
+    "filterPhotography": "Photography",
+    "filterVideo": "Video",
+    "filterTags": "Tags",
+    "filterTagAll": "All tags",
+    "results": "{count, plural, one {# work} other {# works}}",
+    "empty": "No works match these filters yet.",
+    "previous": "Previous",
+    "next": "Next",
+    "backToList": "Back to works",
+    "meta": {
+      "date": "Date",
+      "type": "Type",
+      "typePhotography": "Photography",
+      "typeVideo": "Video",
+      "tags": "Tags"
+    },
+    "missingTranslation": "This piece has no English version yet — showing the Chinese original."
+  },
+  "recommendations": {
+    "title": "Recommendations",
+    "lead": "Open-source projects and software I actually use.",
+    "filterAll": "All",
+    "filterOpenSource": "Open source",
+    "filterSoftware": "Software",
+    "visit": "Visit",
+    "visitAria": "Open {title} in a new window",
+    "empty": "Nothing recommended yet.",
+    "backToList": "Back to recommendations"
+  },
+  "media": {
+    "play": "Play video",
+    "playAria": "Play {title}",
+    "gallery": "Gallery",
+    "imageAlt": "{title} image {index}",
+    "coverFailed": "Cover failed to load",
+    "samplePending": "This sample has not been uploaded yet. Drop the video at:"
+  },
+  "lightbox": {
+    "close": "Close",
+    "previous": "Previous image",
+    "next": "Next image",
+    "counter": "{current} of {total}",
+    "imageAlt": "Full-size image {index} of {total}"
+  },
+  "footer": {
+    "navigation": "Navigation",
+    "follow": "Elsewhere",
+    "rights": "All rights reserved"
+  },
+  "profile": {
+    "name": "Your Name",
+    "title": "Photographer / Developer / Creator"
+  }
+}

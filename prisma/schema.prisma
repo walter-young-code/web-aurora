@@ -1,0 +1,172 @@
+// Prisma 7 + SQLite（单容器内嵌库，见管理后台方案 §2）。
+// SQLite 无原生 Json / 标量数组：所有 Localized 对象与字符串数组都以 JSON 字符串存于 String 列，
+// 由 src/lib/repo.ts 在收发时 JSON.parse/stringify；type 等枚举降级为 String，靠 zod 约束取值。
+// 连接 URL 不在这里，改由 prisma.config.ts 提供（Prisma 7 要求）。
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Work {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  /// Localized {zh,en}，JSON 串
+  title         String
+  /// Localized {zh,en}，JSON 串
+  summary       String
+  /// photography | video
+  type          String
+  cover         String
+  coverRatio    Float
+  /// Localized<string[]>，JSON 串
+  tags          String
+  /// string[]（语言无关筛选键），JSON 串
+  tagKeys       String
+  /// yyyy-MM-dd，前台 formatDate 直接可用
+  createdAt     String
+  featured      Boolean   @default(false)
+  order         Int       @default(0)
+  /// 仅 video，形如 04:12
+  duration      String?
+  /// 上传时由 sharp 计算
+  dominantColor String?
+  /// GalleryImage[]，JSON 串（数组顺序即前台展示顺序）
+  gallery       String    @default("[]")
+  /// VideoAsset | null，JSON 串（本地上传或平台 embed）
+  video         String?
+  docs          WorkDoc[]
+
+  @@index([order])
+}
+
+model WorkDoc {
+  id     String  @id @default(cuid())
+  workId String
+  /// zh | en
+  locale String
+  /// MDX 原文
+  body   String
+  work   Work    @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@unique([workId, locale])
+}
+
+model Recommendation {
+  id        String @id @default(cuid())
+  slug      String @unique
+  /// 专有名词保持原文，不做双语
+  title     String
+  /// Localized {zh,en}，JSON 串
+  summary   String
+  /// open-source | software
+  type      String
+  url       String
+  /// 色块封面用的字母标识（无封面图时回落展示）
+  mark      String
+  /// 可选真实封面图（站内 /media/ 路径）；缺省时前台用 mark 色块
+  cover     String?
+  /// 上传封面时由 sharp 计算的主色（占位铺底）
+  dominantColor String?
+  /// string[]，JSON 串
+  tags      String
+  createdAt String
+
+  @@index([createdAt])
+}
+
+model Profile {
+  /// 单行，恒为 1
+  id      Int    @id @default(1)
+  /// Localized，JSON 串
+  name    String
+  title   String
+  bio     String
+  avatar  String
+  /// {platform,url}[]，JSON 串
+  socials String
+}
+
+model SiteSetting {
+  /// 单行，恒为 1
+  id                 Int    @id @default(1)
+  /// 默认 SEO 标题后缀
+  defaultSeoTitle    String @default("Aurora")
+  /// 默认 SEO 描述
+  defaultDescription String @default("")
+  /// 页脚说明，Localized {zh,en}，JSON 串
+  footerNote         String @default("{\"zh\":\"\",\"en\":\"\"}")
+  /// 联系邮箱
+  contactEmail       String @default("")
+  /// {platform,url}[]，JSON 串（页脚社交链接）
+  socials            String @default("[]")
+  /// 首页 Hero 背景图（站内 /media/ 路径）；留空则回落精选作品封面
+  heroImage          String?
+  /// Hero 背景上传时由 sharp 计算的主色（占位铺底）
+  heroColor          String?
+}
+
+// ---- Better Auth 核心表（字段名与 better-auth 约定一致，表名小写）----
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now())
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  /// 密码登录时存放哈希
+  password              String?
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @default(now())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+
+  @@map("verification")
+}

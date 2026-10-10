@@ -1,0 +1,14 @@
+{
+  "name": { "zh": "你的名字", "en": "Your Name" },
+  "title": { "zh": "摄影师 / 开发者 / 创作者", "en": "Photographer / Developer / Creator" },
+  "bio": {
+    "zh": "这是一段占位简介。我在这里记录光影、代码与路上遇到的人，网站上的每一件作品都从一次具体的出发开始。",
+    "en": "This is placeholder copy. I record light, code, and the people met on the road — every piece here begins with an actual trip."
+  },
+  "avatar": "/media/avatar.jpg",
+  "socials": [
+    { "platform": "GitHub", "url": "https://github.com/your-handle" },
+    { "platform": "Bilibili", "url": "https://space.bilibili.com/your-handle" },
+    { "platform": "Instagram", "url": "https://instagram.com/your-handle" }
+  ]
+}

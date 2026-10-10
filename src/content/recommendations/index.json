@@ -1,0 +1,80 @@
+[
+  {
+    "slug": "next-intl",
+    "title": "next-intl",
+    "summary": {
+      "zh": "让双语路由不用手写重定向，切换语言时能留在原页面。",
+      "en": "Keeps bilingual routing honest — language switching lands on the same page, not the homepage."
+    },
+    "type": "open-source",
+    "url": "https://github.com/amannn/next-intl",
+    "mark": "NI",
+    "tags": ["Next.js", "i18n"],
+    "createdAt": "2026-01-08"
+  },
+  {
+    "slug": "gsap",
+    "title": "GSAP",
+    "summary": {
+      "zh": "滚动动效里少数能同时管好性能与降级的库。",
+      "en": "One of the few scroll libraries that handles both performance and reduced-motion properly."
+    },
+    "type": "open-source",
+    "url": "https://github.com/greensock/GSAP",
+    "mark": "GS",
+    "tags": ["Animation", "JavaScript"],
+    "createdAt": "2025-11-19"
+  },
+  {
+    "slug": "next-js",
+    "title": "Next.js",
+    "summary": {
+      "zh": "整站预渲染成静态文件，图片优化省掉了自己搭管道的时间。",
+      "en": "The whole site ships as static files; built-in image optimisation saved me a pipeline."
+    },
+    "type": "open-source",
+    "url": "https://github.com/vercel/next.js",
+    "mark": "NX",
+    "tags": ["React", "Framework"],
+    "createdAt": "2025-09-02"
+  },
+  {
+    "slug": "sharp",
+    "title": "sharp",
+    "summary": {
+      "zh": "构建时批量读封面主色调，占位色就是这么来的。",
+      "en": "Batch-reads cover colours at build time — that is where the placeholder tint comes from."
+    },
+    "type": "open-source",
+    "url": "https://github.com/lovell/sharp",
+    "mark": "SP",
+    "tags": ["Node", "Image"],
+    "createdAt": "2025-07-25"
+  },
+  {
+    "slug": "figma",
+    "title": "Figma",
+    "summary": {
+      "zh": "把 Bento 网格的跨列关系先画清楚，再动键盘。",
+      "en": "Draws out the Bento spans before any code, which is where the layout actually gets decided."
+    },
+    "type": "software",
+    "url": "https://www.figma.com",
+    "mark": "FG",
+    "tags": ["Design", "Layout"],
+    "createdAt": "2026-02-11"
+  },
+  {
+    "slug": "lightroom",
+    "title": "Lightroom",
+    "summary": {
+      "zh": "风光组片的调色基准，导出色调直接影响这里的主色调占位。",
+      "en": "The grading baseline for landscape sets; its output tint feeds the dominant-colour placeholder here."
+    },
+    "type": "software",
+    "url": "https://www.adobe.com/products/photoshop-lightroom.html",
+    "mark": "LR",
+    "tags": ["Photo", "Grading"],
+    "createdAt": "2025-06-30"
+  }
+]

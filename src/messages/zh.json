@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "site": {
+      "title": "你的名字 — 个人作品集",
+      "description": "以图片与视频为主的个人作品集：摄影、短片与推荐。"
+    }
+  },
+  "nav": {
+    "home": "首页",
+    "works": "作品",
+    "recommendations": "推荐",
+    "openMenu": "打开菜单",
+    "closeMenu": "关闭菜单",
+    "sections": "栏目导航",
+    "language": "语言",
+    "themeToggle": "切换浅色/深色主题",
+    "skipToContent": "跳到主要内容"
+  },
+  "hero": {
+    "scroll": "向下滚动",
+    "viewWorks": "查看全部作品"
+  },
+  "home": {
+    "featured": "精选作品",
+    "allWorks": "查看全部 →",
+    "about": "关于",
+    "aboutCta": "更多作品",
+    "recommended": "个人推荐",
+    "allRecommendations": "查看全部 →"
+  },
+  "works": {
+    "title": "作品",
+    "lead": "摄影与短片，按时间倒序。",
+    "filterAll": "全部",
+    "filterPhotography": "摄影",
+    "filterVideo": "视频",
+    "filterTags": "标签",
+    "filterTagAll": "全部标签",
+    "results": "{count, plural, other {# 件作品}}",
+    "empty": "还没有符合条件的作品。",
+    "previous": "上一篇",
+    "next": "下一篇",
+    "backToList": "返回作品列表",
+    "meta": {
+      "date": "日期",
+      "type": "类型",
+      "typePhotography": "摄影",
+      "typeVideo": "视频",
+      "tags": "标签"
+    },
+    "missingTranslation": "这篇内容还没有英文版，以下显示中文原文。"
+  },
+  "recommendations": {
+    "title": "个人推荐",
+    "lead": "我在用的开源项目与软件。",
+    "filterAll": "全部",
+    "filterOpenSource": "开源",
+    "filterSoftware": "软件",
+    "visit": "前往",
+    "visitAria": "在新窗口打开 {title}",
+    "empty": "暂无推荐。",
+    "backToList": "返回推荐列表"
+  },
+  "media": {
+    "play": "播放视频",
+    "playAria": "播放 {title}",
+    "gallery": "图集",
+    "imageAlt": "{title} 作品图 {index}",
+    "coverFailed": "封面加载失败",
+    "samplePending": "样片尚未上传，把视频文件放到下面这个路径即可播放："
+  },
+  "lightbox": {
+    "close": "关闭",
+    "previous": "上一张",
+    "next": "下一张",
+    "counter": "{current} / {total}",
+    "imageAlt": "大图 {index}，共 {total} 张"
+  },
+  "footer": {
+    "navigation": "导航",
+    "follow": "社交",
+    "rights": "版权所有"
+  },
+  "profile": {
+    "name": "你的名字",
+    "title": "摄影师 / 开发者 / 创作者"
+  }
+}
