@@ -262,7 +262,8 @@ html[data-theme='light'] .theme-toggle .i-moon {
 }
 
 .hero-ken-burns {
-  animation: ken-burns var(--duration-kenburns) linear forwards;
+  /* 往返循环：底图持续极缓呼吸，而非 20s 后定格 */
+  animation: ken-burns var(--duration-kenburns) ease-in-out infinite alternate;
 }
 
 /*
@@ -294,6 +295,67 @@ html[data-theme='light'] .theme-toggle .i-moon {
   }
 }
 
+/* Hero 底部滚动提示：2.4s 呼吸浮动，reduced-motion 下静止（降级规则见文件末） */
+@keyframes hero-scroll-hint {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+.hero-scroll-hint {
+  animation: hero-scroll-hint 2.4s ease-in-out infinite;
+}
+
+/* 移动端全屏菜单：链接 stagger 淡入上移，节奏与 hero-enter 同源 */
+@media (prefers-reduced-motion: no-preference) {
+  .menu-enter > * {
+    opacity: 0;
+    animation: menu-enter var(--duration-enter) var(--ease-out-soft) forwards;
+  }
+
+  .menu-enter > :nth-child(1) { animation-delay: 0.05s; }
+  .menu-enter > :nth-child(2) { animation-delay: 0.11s; }
+  .menu-enter > :nth-child(3) { animation-delay: 0.17s; }
+  .menu-enter > :nth-child(4) { animation-delay: 0.23s; }
+}
+
+@keyframes menu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 导航链接 hover 下划线：从左展开；当前页不加此类（由组件渲染琥珀圆点） */
+.nav-underline {
+  position: relative;
+}
+
+.nav-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-text-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-micro) var(--ease-out-soft);
+}
+
+.nav-underline:hover::after {
+  transform: scaleX(1);
+}
+
 /* 降级：reduced-motion 下直接终态，位移与缩放全部取消（GSAP 侧另有 matchMedia 守卫） */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -303,6 +365,10 @@ html[data-theme='light'] .theme-toggle .i-moon {
   .hero-ken-burns {
     animation: none;
     transform: none;
+  }
+
+  .hero-scroll-hint {
+    animation: none;
   }
 
   .cover-image-loaded {

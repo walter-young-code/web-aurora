@@ -18,6 +18,7 @@ function RecommendationCover({ item }: { item: Recommendation }) {
         dominantColor={item.dominantColor}
         sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
         className="aspect-cover-landscape"
+        imgClassName="transition-transform duration-hover ease-out-soft group-hover:scale-[1.03]"
       />
     );
   }
@@ -25,7 +26,11 @@ function RecommendationCover({ item }: { item: Recommendation }) {
     return (
       <div className="relative aspect-cover-landscape overflow-hidden rounded-card bg-bg-elevated">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={item.cover} alt={item.title} className="h-full w-full object-cover" />
+        <img
+          src={item.cover}
+          alt={item.title}
+          className="h-full w-full object-cover transition-transform duration-hover ease-out-soft group-hover:scale-[1.03]"
+        />
       </div>
     );
   }
@@ -47,7 +52,7 @@ export function CoverMark({
     <div
       aria-hidden="true"
       className={cn(
-        'grid aspect-cover-landscape place-items-center rounded-card bg-bg-elevated transition-colors duration-micro',
+        'grid aspect-cover-landscape place-items-center rounded-card bg-bg-elevated transition-colors duration-micro group-hover:bg-bg-hover',
         className,
       )}
     >
@@ -81,9 +86,12 @@ export function RecommendationCard({
         href={item.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-xs w-fit text-nav-link text-text-secondary underline underline-offset-4 transition-colors duration-micro hover:text-accent"
+        className="group/link mt-xs w-fit text-nav-link text-text-secondary underline underline-offset-4 transition-colors duration-micro hover:text-accent"
       >
-        {t('visit')} ↗
+        {t('visit')}{' '}
+        <span className="inline-block transition-transform duration-micro group-hover/link:-translate-y-[2px] group-hover/link:translate-x-[2px]">
+          ↗
+        </span>
         <span className="sr-only">
           {' '}
           {t('visitAria', { title: item.title })}

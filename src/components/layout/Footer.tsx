@@ -33,7 +33,7 @@ export async function Footer({ locale }: { locale: Locale }) {
             <Link
               key={link.href}
               href={link.href}
-              className="w-fit text-nav-link text-text-secondary transition-colors duration-micro hover:text-accent"
+              className="w-fit text-nav-link text-text-secondary underline-offset-4 transition-colors duration-micro hover:text-accent hover:underline"
             >
               {link.label}
             </Link>
@@ -48,15 +48,18 @@ export async function Footer({ locale }: { locale: Locale }) {
               href={social.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-fit text-nav-link text-text-secondary transition-colors duration-micro hover:text-accent"
+              className="group w-fit text-nav-link text-text-secondary underline-offset-4 transition-colors duration-micro hover:text-accent hover:underline"
             >
-              {social.platform} ↗
+              {social.platform}{' '}
+              <span className="inline-block transition-transform duration-micro group-hover:-translate-y-[2px] group-hover:translate-x-[2px]">
+                ↗
+              </span>
             </a>
           ))}
           {settings.contactEmail ? (
             <a
               href={`mailto:${settings.contactEmail}`}
-              className="w-fit text-nav-link text-text-secondary transition-colors duration-micro hover:text-accent"
+              className="w-fit text-nav-link text-text-secondary underline-offset-4 transition-colors duration-micro hover:text-accent hover:underline"
             >
               {settings.contactEmail}
             </a>

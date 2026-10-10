@@ -51,7 +51,7 @@ export function Header({ name }: { name: string }) {
   return (
     <header
       className={cn(
-        'fixed inset-x-0 top-0 z-40 transition-colors duration-micro',
+        'fixed inset-x-0 top-0 z-40 transition-[background-color,border-color] duration-micro',
         scrolled || menuOpen
           ? 'border-b border-line bg-bg/70 backdrop-blur-md'
           : 'border-b border-transparent bg-transparent',
@@ -60,24 +60,31 @@ export function Header({ name }: { name: string }) {
       <div className="page-container flex h-16 items-center justify-between">
         <Link
           href="/"
-          className="font-display text-nav-link text-text-primary hover:text-accent"
+          className="font-display text-nav-link text-text-primary transition-colors duration-micro hover:text-accent"
         >
           {name}
         </Link>
 
         <nav aria-label={t('sections')} className="hidden items-center gap-lg md:flex">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                'text-nav-link text-text-secondary transition-colors duration-micro hover:text-text-primary',
-                pathname === link.href && 'text-text-primary',
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {links.map((link) => {
+            const isCurrent = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  'relative text-nav-link text-text-secondary transition-colors duration-micro hover:text-text-primary',
+                  isCurrent ? 'text-text-primary' : 'nav-underline',
+                )}
+              >
+                {link.label}
+                {/* 当前页指示：文字下方居中的琥珀圆点 */}
+                {isCurrent ? (
+                  <span className="absolute -bottom-[6px] left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-accent" />
+                ) : null}
+              </Link>
+            );
+          })}
           <LanguageSwitcher />
           <ThemeToggle />
         </nav>
@@ -96,9 +103,12 @@ export function Header({ name }: { name: string }) {
       {menuOpen ? (
         <div
           id="mobile-menu"
-          className="fixed inset-0 top-16 z-30 flex flex-col justify-between bg-bg px-sm pb-xxl pt-xl md:hidden"
+          className="fixed inset-0 top-16 z-30 flex flex-col justify-between bg-bg/95 px-sm pb-xxl pt-xl backdrop-blur-md md:hidden"
         >
-          <nav aria-label={t('sections')} className="flex flex-col items-center gap-lg">
+          <nav
+            aria-label={t('sections')}
+            className="menu-enter flex flex-col items-center gap-lg"
+          >
             <Link href="/" className="text-heading-section text-text-primary">
               {t('home')}
             </Link>
@@ -112,7 +122,7 @@ export function Header({ name }: { name: string }) {
               </Link>
             ))}
           </nav>
-          <div className="flex items-center justify-center gap-sm">
+          <div className="menu-enter flex items-center justify-center gap-sm">
             <LanguageSwitcher />
             <ThemeToggle />
           </div>
