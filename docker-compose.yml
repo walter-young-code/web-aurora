@@ -21,6 +21,8 @@ services:
       # 站点绝对地址：sitemap / OG / 结构化数据 / Better Auth 回跳都以此为准
       NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:-https://example.com}'
       BETTER_AUTH_URL: '${BETTER_AUTH_URL:-https://example.com}'
+      # 额外可信来源（逗号分隔）：兼容裸域名 + www、未来的 https，登录 Origin 校验用
+      AUTH_TRUSTED_ORIGINS: '${AUTH_TRUSTED_ORIGINS:-}'
       # 会话签名密钥：必须由外部提供强随机值，缺失即拒绝启动（防误用默认值上线）
       AUTH_SECRET: '${AUTH_SECRET:?请在 .env 中设置足够随机的 AUTH_SECRET}'
       # 管理员账号（可选）：每次启动幂等补建，留空或已存在则跳过
