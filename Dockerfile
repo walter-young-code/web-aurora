@@ -27,6 +27,8 @@ ENV DATABASE_URL="file:./prisma/build.db"
 # better-auth 在 NODE_ENV=production 下缺 secret 会在模块加载时抛错（unhandled rejection 直接终止构建）。
 # 构建期给占位值：admin 相关路由全部动态渲染，不会把值写进产物；运行期由容器注入真实 AUTH_SECRET。
 ENV AUTH_SECRET="build-time-placeholder-do-not-use-at-runtime"
+# 与上条 RUN 的 control=memory 配套：堆顶设 6G，触发及时 GC（见 builder 末尾注释）
+ENV NODE_OPTIONS="--max-old-space-size=6144"
 # 站点绝对地址需在构建期确定：sitemap / robots / canonical 是构建期烘焙，
 # robots 永不重生成、sitemap 仅在后台改作品后重渲染，运行期 env 补不了。
 # 由 compose 的 build.args 传入（与运行期 environment 同源）；直建时用默认值演习。
@@ -38,6 +40,10 @@ RUN npx prisma generate
 # 空表也允许 build，但预渲染作品页需要数据，故先迁移并播种一次到构建期专用库
 RUN npx prisma migrate deploy
 RUN npm run db:seed
+# control=memory 把该步骤容器限制在 8G：实测不限时 Turbopack 构建会在 ~100s 无节制涨满 16G 被 OOM killer 杀掉（exit 137）。
+# 配套 V8 堆上限 6G（留 2G 给 Rust 侧与页内 worker），让 Node 提前 GC 而不是被动挨杀。
+# 若未来升级 Next 移除该实验语法，退回方案：宿主机 docker build --memory=8g。
+# control:memory=8g,cpus=8
 RUN npm run build
 
 # ---- runner：瘦身运行镜像 ----
@@ -69,6 +75,8 @@ COPY --from=builder /app/prisma/build.db ./prisma/seed.db
 COPY --from=builder /app/scripts/start.sh ./start.sh
 # 启动脚本用：按 ADMIN_EMAIL/ADMIN_PASSWORD 幂等建管理员（不依赖 src/ 与生成物）
 COPY --from=builder /app/scripts/init-admin.mjs ./scripts/init-admin.mjs
+# 运维脚本：重置/创建管理员密码（绕过 ensureAdmin 的「已存在即跳过」），docker compose exec 调用
+COPY --from=builder /app/scripts/reset-admin-password.mjs ./scripts/reset-admin-password.mjs
 RUN chmod +x ./start.sh
 
 EXPOSE 3000
