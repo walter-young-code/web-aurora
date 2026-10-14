@@ -25,6 +25,7 @@ function move<T>(arr: T[], from: number, to: number): T[] {
   next.splice(to, 0, item);
   return next;
 }
+void move; // 保留给后续可能的拖拽排序使用；当前排序基于 visible 子集直接交换，见 swap
 
 /** 作品列表：搜索 + 类型/标签筛选 + 上下调序（保存顺序） */
 export function WorksAdminTable({ initial }: { initial: WorkRow[] }) {
@@ -52,11 +53,24 @@ export function WorksAdminTable({ initial }: { initial: WorkRow[] }) {
   });
 
   function swap(slug: string, dir: -1 | 1) {
-    const idx = rows.findIndex((r) => r.slug === slug);
-    if (idx === -1) return;
+    // 修复（M-2）：筛选态下必须基于 visible 子集找邻居，
+    // 否则会与相邻的非筛选项交换，用户看到的是“点了没动”或“跳位”。
+    // 交换两个 visible 邻居在全局数组中的位置：
+    // - 无筛选时等价于原来的 move（相邻交换 = 上/下移）
+    // - 有筛选时只影响当前两个作品的全局 order，隐藏项相对顺序不变
+    const visibleIdx = visible.findIndex((r) => r.slug === slug);
+    if (visibleIdx === -1) return;
+    const neighborVisibleIdx = visibleIdx + dir;
+    if (neighborVisibleIdx < 0 || neighborVisibleIdx >= visible.length) return;
+    const neighborSlug = visible[neighborVisibleIdx].slug;
+
     setRows((prev) => {
-      const next = move(prev, idx, idx + dir).map((r, i) => ({ ...r, order: i }));
-      return next;
+      const i = prev.findIndex((r) => r.slug === slug);
+      const j = prev.findIndex((r) => r.slug === neighborSlug);
+      if (i === -1 || j === -1) return prev;
+      const next = [...prev];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next.map((r, idx) => ({ ...r, order: idx }));
     });
     setDirty(true);
   }
@@ -125,8 +139,7 @@ export function WorksAdminTable({ initial }: { initial: WorkRow[] }) {
             </tr>
           </thead>
           <tbody>
-            {visible.map((r) => {
-              const gi = rows.findIndex((x) => x.slug === r.slug);
+            {visible.map((r, vi) => {
               return (
                 <tr key={r.slug} className="border-t border-line">
                   <td className="px-3 py-2">
@@ -135,7 +148,7 @@ export function WorksAdminTable({ initial }: { initial: WorkRow[] }) {
                       <button
                         type="button"
                         className={btnGhost}
-                        disabled={gi === 0}
+                        disabled={vi === 0}
                         onClick={() => swap(r.slug, -1)}
                         aria-label="上移"
                       >
@@ -144,7 +157,7 @@ export function WorksAdminTable({ initial }: { initial: WorkRow[] }) {
                       <button
                         type="button"
                         className={btnGhost}
-                        disabled={gi === rows.length - 1}
+                        disabled={vi === visible.length - 1}
                         onClick={() => swap(r.slug, 1)}
                         aria-label="下移"
                       >

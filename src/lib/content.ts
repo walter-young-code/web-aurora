@@ -110,10 +110,13 @@ export const getHomeWorks = unstable_cache(
   { tags: ['works'], ...CACHE },
 );
 
-/** 上一篇/下一篇按 order 环形相邻 */
+/** 上一篇/下一篇按 order 环形相邻；作品 <=1 时无相邻，避免单作品时上一篇/下一篇指向自身 */
 export const getAdjacentWorks = unstable_cache(
   async (slug: string): Promise<{ previous: Work | undefined; next: Work | undefined }> => {
     const works = await getWorks();
+    // 环形取模在 length===1 时 (0-1+1)%1=(0+1)%1=0，两侧都会回到当前作品本身，
+    // 详情页会出现两个指向自己的导航链接，不符合语义。直接短路为空。
+    if (works.length <= 1) return { previous: undefined, next: undefined };
     const index = works.findIndex((work) => work.slug === slug);
     if (index === -1) return { previous: undefined, next: undefined };
     return {

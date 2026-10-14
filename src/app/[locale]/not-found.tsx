@@ -1,9 +1,10 @@
-import Link from 'next/link';
+import { HomeLink } from '@/components/layout/HomeLink';
 
 /**
  * 404 不带 locale：Next 16 在 `dynamicParams = false` 时会在 [locale] 布局之外预渲染这个边界，
  * 此时拿不到 route params（见 works/[slug]/page.tsx 的 dynamicParams）。
  * 404 采用一行双语提示，所以中英直接并列写死，不依赖 i18n 上下文。
+ * 「回到首页」交给客户端 HomeLink：从 pathname 首段推断 locale，避免中间件 302 丢失语言上下文。
  */
 export default function NotFound() {
   return (
@@ -18,12 +19,7 @@ export default function NotFound() {
         <br />
         There is nothing at this address — it may have been renamed, or never existed.
       </p>
-      <Link
-        href="/"
-        className="mt-md inline-flex h-11 items-center rounded-chip bg-accent px-md text-nav-link text-on-primary transition-opacity duration-micro hover:opacity-90"
-      >
-        回到首页 / Back to home
-      </Link>
+      <HomeLink className="mt-md inline-flex h-11 items-center rounded-chip bg-accent px-md text-nav-link text-on-primary transition-opacity duration-micro hover:opacity-90" />
     </section>
   );
 }

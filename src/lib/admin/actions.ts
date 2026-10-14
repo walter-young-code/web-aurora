@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import { jstr, jparse } from '@/lib/repo';
@@ -26,11 +26,16 @@ async function guard() {
   if (!session?.user) throw new Error('UNAUTHENTICATED');
 }
 
-/** 内容变更后：按 tag 强制即时失效（expire:0 = 下次请求阻塞式重算，做到即时落地），并清掉路由/客户端缓存 */
+/**
+ * 内容变更后：按 tag 即时失效缓存，并清掉路由/客户端缓存。
+ * 采用 updateTag 而非 revalidateTag：Next 16 文档明确指出 Server Action 内
+ * 需要即时过期时应用 updateTag（具备 read-your-own-writes 语义），
+ * 保证同一次提交后紧接的页面读取能看到新值。
+ */
 function revalidateSite() {
-  revalidateTag('works', { expire: 0 });
-  revalidateTag('recommendations', { expire: 0 });
-  revalidateTag('profile', { expire: 0 });
+  updateTag('works');
+  updateTag('recommendations');
+  updateTag('profile');
   revalidatePath('/[locale]', 'layout');
   revalidatePath('/sitemap.xml');
 }
@@ -82,29 +87,40 @@ export async function upsertWork(input: WorkInput): Promise<ActionResult> {
     video: w.video ? jstr(w.video) : null,
   };
 
-  const work = await prisma.work.upsert({
-    where: { slug: w.slug },
-    update: data,
-    create: { slug: w.slug, ...data },
-  });
-
-  // 正文：非空写入/更新，空则删除该行（前台据此回落另一语言）
-  await Promise.all([
-    syncDoc(work.id, 'zh', w.docZh),
-    syncDoc(work.id, 'en', w.docEn),
-  ]);
+  try {
+    // 主记录 + 双语正文共三个写入包裹为一个交互式事务：
+    // 任一环节失败（SQLite 忙/磁盘满/约束冲突）则整体回滚，
+    // 避免作品已保存但 zh/en 文档只写入一半的不一致状态。
+    await prisma.$transaction(async (tx) => {
+      const work = await tx.work.upsert({
+        where: { slug: w.slug },
+        update: data,
+        create: { slug: w.slug, ...data },
+      });
+      // 正文：非空写入/更新，空则删除该行（前台据此回落另一语言）
+      await syncDoc(tx, work.id, 'zh', w.docZh);
+      await syncDoc(tx, work.id, 'en', w.docEn);
+    });
+  } catch {
+    return { ok: false, error: '保存失败，请重试' };
+  }
 
   revalidateSite();
   return { ok: true };
 }
 
-async function syncDoc(workId: string, locale: 'zh' | 'en', body?: string) {
+async function syncDoc(
+  tx: Prisma.TransactionClient,
+  workId: string,
+  locale: 'zh' | 'en',
+  body?: string,
+) {
   const trimmed = body?.trim();
   if (!trimmed) {
-    await prisma.workDoc.deleteMany({ where: { workId, locale } });
+    await tx.workDoc.deleteMany({ where: { workId, locale } });
     return;
   }
-  await prisma.workDoc.upsert({
+  await tx.workDoc.upsert({
     where: { workId_locale: { workId, locale } },
     update: { body: trimmed },
     create: { workId, locale, body: trimmed },
@@ -370,7 +386,7 @@ export async function upsertSettings(input: SettingsInput): Promise<ActionResult
     await cleanupOldHeroImage(oldHero).catch(() => {});
   }
 
-  revalidateTag('settings', { expire: 0 });
+  updateTag('settings');
   revalidatePath('/[locale]', 'layout');
   return { ok: true };
 }

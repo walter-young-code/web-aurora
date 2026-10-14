@@ -23,12 +23,14 @@ export default async function HomePage({
   const settings = await getSettings();
   const works = await getHomeWorks(6);
   const recommendations = (await getRecommendations()).slice(0, 4);
+  // 新部署未 seed 或作品被清空时，works 可能为空数组；此处必须做可选链守卫，
+  // 否则 heroWork.cover / heroWork.dominantColor 会抛 TypeError 导致首页 500。
   const heroWork = works.find((work) => work.featured) ?? works[0];
-  // Hero 背景：优先用站点设置里自定义的背景图，留空则回落精选作品封面
-  const heroCover = settings.heroImage ?? heroWork.cover;
+  // Hero 背景优先级：站点设置自定义背景 > 精选/首个作品封面 > 空（由 HeroSection 降级为纯色背景）
+  const heroCover = settings.heroImage ?? heroWork?.cover ?? '';
   const heroCoverColor = settings.heroImage
     ? (settings.heroColor ?? undefined)
-    : heroWork.dominantColor;
+    : heroWork?.dominantColor;
 
   const viewAllClass =
     'text-nav-link text-text-secondary transition-colors duration-micro hover:text-accent';

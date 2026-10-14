@@ -22,15 +22,24 @@ export function HeroSection({ name, title, bio, cover, coverColor }: Props) {
       <HeroScrollParallax className="absolute inset-0">
         <div data-hero-visual className="absolute inset-0">
           <div className="hero-ken-burns absolute inset-[-6%]">
-            <DominantColorImage
-              src={cover}
-              alt=""
-              dominantColor={coverColor}
-              priority
-              sizes="100vw"
-              className="h-full w-full"
-              imgClassName="opacity-90"
-            />
+            {cover ? (
+              <DominantColorImage
+                src={cover}
+                alt=""
+                dominantColor={coverColor}
+                priority
+                sizes="100vw"
+                className="h-full w-full"
+                imgClassName="opacity-90"
+              />
+            ) : (
+              // 降级：新部署未 seed / 未配置站点背景时，用主色或主题背景色铺底，避免空图报错
+              <div
+                className="h-full w-full bg-bg-elevated"
+                style={coverColor ? { backgroundColor: coverColor } : undefined}
+                aria-hidden="true"
+              />
+            )}
           </div>
         </div>
       </HeroScrollParallax>
