@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import { jstr, jparse } from '@/lib/repo';
 import { Prisma } from '@/generated/prisma/client';
-import { uploadMedia, uploadHeroImage, scanMediaFiles, removeMediaFile, type MediaItem } from '@/lib/media';
+import { uploadMedia, uploadHeroImage, scanMediaFiles, removeMediaFile, cleanupOldHeroImage, type MediaItem } from '@/lib/media';
 import { slugify } from '@/lib/utils';
 import {
   workSchema,
@@ -348,6 +348,11 @@ export async function upsertSettings(input: SettingsInput): Promise<ActionResult
   const parsed = settingsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const s = parsed.data;
+
+  // 读取旧值，用于判断是否需要清理
+  const prev = await prisma.siteSetting.findUnique({ where: { id: 1 }, select: { heroImage: true } });
+  const oldHero = prev?.heroImage ?? null;
+
   const data = {
     defaultSeoTitle: s.defaultSeoTitle,
     defaultDescription: s.defaultDescription,
@@ -358,6 +363,13 @@ export async function upsertSettings(input: SettingsInput): Promise<ActionResult
     heroColor: s.heroImage?.trim() ? s.heroColor || null : null,
   };
   await prisma.siteSetting.upsert({ where: { id: 1 }, update: data, create: { id: 1, ...data } });
+
+  // Hero 背景变更时自动清理旧图（仅限 /media/hero/ 下的文件，失败不影响保存结果）
+  const newHero = data.heroImage;
+  if (oldHero && oldHero !== newHero) {
+    await cleanupOldHeroImage(oldHero).catch(() => {});
+  }
+
   revalidateTag('settings', { expire: 0 });
   revalidatePath('/[locale]', 'layout');
   return { ok: true };

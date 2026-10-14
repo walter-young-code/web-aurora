@@ -64,8 +64,8 @@ RUN sed -i "s|deb.debian.org|${DEBIAN_MIRROR}|g" /etc/apt/sources.list.d/debian.
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-# 保留一份纯净媒体副本：挂空卷遮蔽 public/media 时，start.sh 用它自举既有图片
-RUN cp -a ./public/media ./public/.media-seed
+# 保留一份纯净媒体副本：挂空卷遮蔽 storage/media 时，start.sh 用它自举既有图片
+RUN mkdir -p ./storage && cp -a ./public/media ./storage/media && cp -a ./storage/media ./storage/.media-seed
 # 覆盖为完整 node_modules：保证运行期 prisma migrate CLI / schema-engine 可用
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma

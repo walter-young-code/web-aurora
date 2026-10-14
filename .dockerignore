@@ -22,3 +22,6 @@ src/generated
 README.md
 .dockerignore
 Dockerfile
+
+# 运行期媒体存储不入镜像（由卷挂载提供）
+storage

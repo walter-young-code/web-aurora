@@ -86,7 +86,7 @@ docker compose logs -f aurora
 ### 数据持久化与备份
 
 - `aurora-db` 卷：SQLite 库（内容 + 账号）。备份即导出该卷里的 `aurora.db`。
-- `aurora-media` 卷：`public/media`，后台上传的图片落此处。
+- `aurora-media` 卷：`storage/media`，后台上传的图片落此处，由 Route Handler 动态服务。
 - 升级镜像：`docker compose up -d --build`，迁移对新表结构幂等执行，卷数据保留。
 
 ### 反向代理

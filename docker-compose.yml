@@ -16,8 +16,8 @@ services:
     environment:
       # 卷内绝对路径：start.sh 首启会 mkdir 并从镜像 seed.db 自举、再 migrate deploy
       DATABASE_URL: 'file:/data/aurora.db'
-      # 上传落盘目录，同时也是 Next 对外提供 /media/* 的 public/media
-      MEDIA_DIR: '/app/public/media'
+      # 上传落盘目录，由 /media/[...path] Route Handler 动态服务，不受 public/ 快照限制
+      MEDIA_DIR: '/app/storage/media'
       # 站点绝对地址：sitemap / OG / 结构化数据 / Better Auth 回跳都以此为准
       NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:-https://example.com}'
       BETTER_AUTH_URL: '${BETTER_AUTH_URL:-https://example.com}'
@@ -30,7 +30,7 @@ services:
       ADMIN_PASSWORD: '${ADMIN_PASSWORD:-}'
     volumes:
       - aurora-db:/data
-      - aurora-media:/app/public/media
+      - aurora-media:/app/storage/media
 
 volumes:
   aurora-db:

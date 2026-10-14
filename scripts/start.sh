@@ -25,14 +25,14 @@ node ./scripts/init-admin.mjs
 
 # 媒体目录自举：MEDIA_DIR 挂的是空卷时，镜像内置的封面/头像会被遮蔽，
 # 故首次运行把纯净副本 .media-seed 灌进去，保证既有作品图片照常可访问。
-MEDIA_PATH="${MEDIA_DIR:-./public/media}"
+MEDIA_PATH="${MEDIA_DIR:-./storage/media}"
 case "$MEDIA_PATH" in
   /*) : ;;
   *) MEDIA_PATH="/app/$MEDIA_PATH" ;;
 esac
-if [ -d /app/public/.media-seed ] && [ ! -e "$MEDIA_PATH/works" ]; then
+if [ -d /app/storage/.media-seed ] && [ ! -e "$MEDIA_PATH/works" ]; then
   mkdir -p "$MEDIA_PATH"
-  cp -a /app/public/.media-seed/. "$MEDIA_PATH/"
+  cp -a /app/storage/.media-seed/. "$MEDIA_PATH/"
   echo "[start] 首次运行：已从镜像种子媒体初始化 $MEDIA_PATH"
 fi
 

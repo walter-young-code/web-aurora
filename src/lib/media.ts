@@ -8,10 +8,11 @@ import { slugify } from './utils';
 
 /**
  * 图片上传落本地文件系统（单容器挂卷）。
- * 上传目录相对 MEDIA_DIR（默认 ./public/media），返回站内 URL 与（图片）主色调。
- * Next 会按请求从 public 读取，运行期新增文件亦可访问；容器把 public/media 挂到卷上持久化。
+ * 上传目录相对 MEDIA_DIR（默认 ./storage/media），返回站内 URL 与（图片）主色调。
+ * 运行期通过 /media/[...path] Route Handler 动态读取磁盘，不受 Next.js public/ 快照限制。
+ * 容器把 storage/media 挂到卷上持久化。
  */
-const mediaRoot = process.env.MEDIA_DIR ?? './public/media';
+const mediaRoot = process.env.MEDIA_DIR ?? './storage/media';
 
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif']);
 const EXT: Record<string, string> = {
@@ -159,6 +160,8 @@ export type MediaItem = {
 };
 
 const mediaRootAbs = path.resolve(/* turbopackIgnore: true */ mediaRoot);
+/** 种子媒体目录（版本库内置文件，开发模式由 Next.js 静态服务；生产由快照或 Route Handler 服务） */
+const seedMediaAbs = path.resolve(/* turbopackIgnore: true */ './public/media');
 
 /** 将 /media/... 站内 URL 解析为绝对路径；越界（.. / 绝对路径 / 跳出 mediaRoot）返回 null */
 function resolveMediaPath(url: string): string | null {
@@ -172,10 +175,11 @@ function resolveMediaPath(url: string): string | null {
   return abs;
 }
 
-/** 递归扫描 mediaRoot，返回所有媒体文件的元信息（按修改时间倒序） */
+/** 扫描 storage/media (上传) + public/media (种子) 两个目录，按 URL 去重，返回所有媒体文件元信息（按修改时间倒序） */
 export async function scanMediaFiles(): Promise<MediaItem[]> {
-  const items: MediaItem[] = [];
-  async function walk(dirAbs: string) {
+  const map = new Map<string, MediaItem>();
+
+  async function walk(dirAbs: string, rootAbs: string) {
     let entries;
     try {
       entries = await readdir(dirAbs, { withFileTypes: true });
@@ -185,23 +189,29 @@ export async function scanMediaFiles(): Promise<MediaItem[]> {
     for (const entry of entries) {
       const childAbs = path.join(dirAbs, entry.name);
       if (entry.isDirectory()) {
-        await walk(childAbs);
+        await walk(childAbs, rootAbs);
         continue;
       }
       if (!entry.isFile()) continue;
       const info = await stat(childAbs);
-      const relUrl = `/media/${path.relative(mediaRootAbs, childAbs).split(path.sep).join('/')}`;
+      const relUrl = `/media/${path.relative(rootAbs, childAbs).split(path.sep).join('/')}`;
       const ext = path.extname(entry.name).toLowerCase();
       const kind: MediaItem['kind'] = ['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif'].includes(ext)
         ? 'image'
         : ['.mp4', '.webm', '.mov'].includes(ext)
           ? 'video'
           : 'other';
-      items.push({ url: relUrl, kind, size: info.size, mtime: info.mtime.toISOString() });
+      // storage 优先：同名时上传文件覆盖种子文件
+      if (!map.has(relUrl)) {
+        map.set(relUrl, { url: relUrl, kind, size: info.size, mtime: info.mtime.toISOString() });
+      }
     }
   }
-  await walk(mediaRootAbs);
-  return items.sort((a, b) => (a.mtime < b.mtime ? 1 : -1));
+
+  // 先扫 storage（上传目录优先级高），再扫 public/media（种子目录仅补位）
+  await walk(mediaRootAbs, mediaRootAbs);
+  await walk(seedMediaAbs, seedMediaAbs);
+  return [...map.values()].sort((a, b) => (a.mtime < b.mtime ? 1 : -1));
 }
 
 /** 删除一个站内媒体文件；越界拒绝，成功返回 true，文件不存在返回 false */
@@ -216,4 +226,28 @@ export async function removeMediaFile(url: string): Promise<boolean> {
   }
   await rm(abs, { force: true });
   return true;
+}
+
+/**
+ * 清理旧 Hero 背景图：仅在 URL 确实指向 /media/hero/ 前缀时执行，
+ * 同时尝试从 storage/media 和 public/media 两个目录删除（兼容历史文件位置）。
+ * 安全约束：路径必须限定在 hero/ 子目录下，杜绝误删其他资源。
+ */
+export async function cleanupOldHeroImage(oldUrl: string | null | undefined): Promise<void> {
+  if (!oldUrl || !oldUrl.startsWith('/media/hero/')) return;
+  const rel = oldUrl.slice('/media/'.length);
+  // 双目录尝试删除，任一命中即可
+  for (const root of [mediaRootAbs, seedMediaAbs]) {
+    const abs = path.resolve(root, rel);
+    // 安全校验：确保仍在 hero/ 内
+    const heroDir = path.join(root, 'hero');
+    if (!abs.startsWith(heroDir + path.sep)) continue;
+    try {
+      await access(abs);
+      await rm(abs, { force: true });
+      return; // 确认文件存在并已删除
+    } catch {
+      // 文件不在此目录，继续尝试下一个
+    }
+  }
 }

@@ -20,6 +20,9 @@
 # production
 /build
 
+# 运行期媒体存储（用户上传落盘，不入版本库）
+/storage/media/
+
 # misc
 .DS_Store
 *.pem
