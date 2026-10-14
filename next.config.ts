@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   // 全站预渲染 + ISR：前台页面构建期铺量、运行期按需重渲染。
   // standalone 产物用于单容器 Docker 部署，镜像只拷这份最小运行时。
   output: 'standalone',
+  // Server Action 默认 body 上限 1MB，媒体上传（图片≤20MB、本地视频≤200MB，见 lib/media.ts）会触发 413。
+  // 此处放宽到略高于视频上限（Next 16 中该配置位于 experimental 下）；若前端还有 nginx 反代，需同步设置 client_max_body_size。
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '210mb',
+    },
+  },
   // sharp / Prisma / better-sqlite3 依赖原生或动态 require，交由 Node 运行时而不是打包。
   serverExternalPackages: [
     'sharp',
