@@ -26,7 +26,7 @@ async function guard() {
   if (!session?.user) throw new Error('UNAUTHENTICATED');
 }
 
-/** 内容变更后：按 tag 强制即时失效（expire:0 = 下次请求阻塞式重算，做到即时落地），并让预渲染页面重渲染 */
+/** 内容变更后：按 tag 强制即时失效（expire:0 = 下次请求阻塞式重算，做到即时落地），并清掉路由/客户端缓存 */
 function revalidateSite() {
   revalidateTag('works', { expire: 0 });
   revalidateTag('recommendations', { expire: 0 });

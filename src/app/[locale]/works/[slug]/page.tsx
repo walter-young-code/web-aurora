@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link, routing } from '@/i18n/routing';
-import { getAdjacentWorks, getWork, getWorks, readWorkDoc } from '@/lib/content';
+import { getAdjacentWorks, getWork, readWorkDoc } from '@/lib/content';
 import { ogImage, pageMetadata } from '@/lib/seo';
 import { absoluteUrl, cn, coverAspectClass, formatDate, isLocale, siteUrl } from '@/lib/utils';
 import type { Locale } from '@/types/localized';
@@ -13,15 +13,6 @@ import { ImageGallery } from '@/components/media/ImageGallery';
 import { LazyVideoEmbed } from '@/components/media/LazyVideoEmbed';
 import { MdxArticle } from '@/components/mdx/MdxArticle';
 import { ScrollReveal } from '@/components/effects/ScrollReveal';
-
-export async function generateStaticParams() {
-  const works = await getWorks();
-  return routing.locales.flatMap((locale) =>
-    works.map((work) => ({ locale, slug: work.slug })),
-  );
-}
-
-export const dynamicParams = true;
 
 function isoDuration(clock?: string) {
   if (!clock) return undefined;

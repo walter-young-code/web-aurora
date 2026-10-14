@@ -4,11 +4,13 @@ import { NextResponse } from 'next/server';
 
 /**
  * 动态媒体文件路由：从磁盘实时读取 /media/... 请求对应的文件。
- * 解决 Next.js 16 生产环境 public/ 目录启动快照导致运行期新上传文件 404 的问题。
- * 路由优先级高于 public/ 静态文件，因此所有 /media/* 请求均由此处理。
+ * MEDIA_DIR 是 /media/* 的唯一来源（上传落盘与种子媒体同步都在这里），
+ * 因此这里不设 public/ 回落：读不到就是不存在，与媒体库扫描结果一致。
+ * 走运行期读盘也避开了 Next.js 生产环境 public/ 启动快照导致新上传文件 404 的问题。
  */
 
-const mediaRoot = path.resolve(process.env.MEDIA_DIR ?? './storage/media');
+// turbopackIgnore: 这里的读盘路径运行期才确定，不加标记会让 Turbopack 把整个项目（含源码）追进 standalone 产物
+const mediaRoot = path.resolve(/* turbopackIgnore: true */ process.env.MEDIA_DIR ?? './storage/media');
 
 const MIME: Record<string, string> = {
   '.jpg': 'image/jpeg',
@@ -37,7 +39,10 @@ export async function GET(
   }
 
   try {
-    const [fileInfo, fileBuf] = await Promise.all([stat(abs), readFile(abs)]);
+    const [fileInfo, fileBuf] = await Promise.all([
+      stat(/* turbopackIgnore: true */ abs),
+      readFile(/* turbopackIgnore: true */ abs),
+    ]);
     if (!fileInfo.isFile()) {
       return NextResponse.json({ error: 'Not Found' }, { status: 404 });
     }

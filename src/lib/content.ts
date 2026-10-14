@@ -17,6 +17,9 @@ export type Profile = {
  * 内容一律来自 SQLite（Prisma 7）。每个读取都用 unstable_cache 包裹并打 tag，
  * 后台写入后按 tag 精准失效（见 src/lib/admin/actions.ts），从而在常驻 Node 容器里即时反映改动。
  * revalidate:false = 不因时间过期，只随 revalidateTag 更新。
+ *
+ * 这份缓存是进程内存态：容器重启即清空，下一次读取直接回落到 SQLite。
+ * 前台因此可以安全地走运行期渲染（layout 的 force-dynamic），内容与库始终一致。
  */
 const CACHE = { revalidate: false } as const;
 

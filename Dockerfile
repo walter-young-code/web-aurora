@@ -29,15 +29,16 @@ ENV DATABASE_URL="file:./prisma/build.db"
 ENV AUTH_SECRET="build-time-placeholder-do-not-use-at-runtime"
 # 与上条 RUN 的 control=memory 配套：堆顶设 6G，触发及时 GC（见 builder 末尾注释）
 ENV NODE_OPTIONS="--max-old-space-size=6144"
-# 站点绝对地址需在构建期确定：sitemap / robots / canonical 是构建期烘焙，
-# robots 永不重生成、sitemap 仅在后台改作品后重渲染，运行期 env 补不了。
+# 站点绝对地址需在构建期确定：NEXT_PUBLIC_* 会被内联进产物，且 robots / canonical 仍依赖它。
+# （sitemap 已改为运行期生成，不再受构建期烘焙限制）
 # 由 compose 的 build.args 传入（与运行期 environment 同源）；直建时用默认值演习。
 ARG NEXT_PUBLIC_SITE_URL=https://example.com
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
-# 空表也允许 build，但预渲染作品页需要数据，故先迁移并播种一次到构建期专用库
+# 前台是运行期渲染（force-dynamic），构建不再需要真内容；这里迁移+播种只为两件事：
+# 产出 build.db 当作运行首启的自举模板（拷成 prisma/seed.db），并让构建期任何读库环节不报错
 RUN npx prisma migrate deploy
 RUN npm run db:seed
 # control=memory 把该步骤容器限制在 8G：实测不限时 Turbopack 构建会在 ~100s 无节制涨满 16G 被 OOM killer 杀掉（exit 137）。
@@ -64,8 +65,10 @@ RUN sed -i "s|deb.debian.org|${DEBIAN_MIRROR}|g" /etc/apt/sources.list.d/debian.
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-# 保留一份纯净媒体副本：挂空卷遮蔽 storage/media 时，start.sh 用它自举既有图片
-RUN mkdir -p ./storage && cp -a ./public/media ./storage/media && cp -a ./storage/media ./storage/.media-seed
+# 种子媒体（版本库内置的封面/头像）随镜像发布，但运行期不从这里直接对外：
+# start.sh 调 sync-media.mjs 把它幂等灌进 MEDIA_DIR，让 /media/* 只有这一个目录来源
+COPY --from=builder /app/media-seed ./media-seed
+COPY --from=builder /app/scripts/sync-media.mjs ./scripts/sync-media.mjs
 # 覆盖为完整 node_modules：保证运行期 prisma migrate CLI / schema-engine 可用
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma

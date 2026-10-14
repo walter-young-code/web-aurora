@@ -21,7 +21,14 @@ const spaceGrotesk = Space_Grotesk({
   display: 'swap',
 });
 
-export const dynamicParams = true;
+/**
+ * 前台一律运行期渲染（不用构建期预渲染 + ISR）。
+ * 原因：standalone 容器里预渲染 HTML 来自镜像（烘焙的是构建期种子库），而标签失效记录只存在于
+ * 进程内存；重渲染结果不回写磁盘。于是每次重启/重新部署，前台都会退回构建期那份内容，
+ * 且必须有人在后台随手保存一次才会刷新。改成运行期渲染后，前台与 SQLite 始终一致
+ * （数据读取仍有 unstable_cache，进程内复用，重启后第一次请求即读库）。
+ */
+export const dynamic = 'force-dynamic';
 
 /**
  * 首屏防闪烁：在 body 解析到内容之前把 data-theme 落到 <html>。
@@ -33,10 +40,6 @@ const THEME_INIT = `
 var light=s==='light'||(!s&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches);
 if(light)document.documentElement.setAttribute('data-theme','light');}catch(e){}})();
 `;
-
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -75,7 +78,7 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  // 全站 SSG：没有这一句，next-intl 会在构建期把页面退回动态渲染
+  // 显式钉住 locale：next-intl 的静态 API（generateMetadata 等）据此取值，不做请求期协商
   setRequestLocale(locale);
 
   const profile = await getProfile();

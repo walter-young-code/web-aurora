@@ -3,6 +3,9 @@ import { routing } from '@/i18n/routing';
 import { getWorks } from '@/lib/content';
 import { siteUrl } from '@/lib/utils';
 
+// 与前台一致：sitemap 也在请求期读库生成，避免把构建期种子内容烘焙进镜像、重启后 URL 列表回退
+export const dynamic = 'force-dynamic';
+
 /** 双语全部 URL，每条都带成对 hreflang */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const paths = ['/', '/works', '/recommendations'];

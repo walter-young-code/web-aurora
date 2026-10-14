@@ -1,6 +1,6 @@
-// 构建期为每张作品封面提取主色调，写回 src/content/works/index.json 的 dominantColor。
+// 为每张作品封面提取主色调，写回 src/content/works/index.json 的 dominantColor（seed 夹具用）。
 // 用途：DominantColorImage 的占位底色，杜绝白块与 CLS。
-// 运行：npm run extract-colors
+// 运行：npm run extract-colors（先 npm run sync:media，封面在 MEDIA_DIR 里）
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,6 +8,8 @@ import sharp from 'sharp';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dataPath = join(root, 'src/content/works/index.json');
+// 媒体唯一目录：与 src/lib/media.ts 保持同一个默认值
+const mediaDir = resolve(process.env.MEDIA_DIR ?? join(root, 'storage/media'));
 
 const hex = (n) => n.toString(16).padStart(2, '0');
 const MAX_CHANNEL = 0x4d;
@@ -74,7 +76,7 @@ const works = JSON.parse(readFileSync(dataPath, 'utf8'));
 let changed = 0;
 
 for (const work of works) {
-  const file = join(root, 'public', work.cover.replace(/^\//, ''));
+  const file = join(mediaDir, work.cover.replace(/^\/media\//, ''));
   if (!existsSync(file)) {
     console.warn(`跳过 ${work.slug}：找不到 ${work.cover}`);
     continue;

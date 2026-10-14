@@ -16,7 +16,8 @@ services:
     environment:
       # 卷内绝对路径：start.sh 首启会 mkdir 并从镜像 seed.db 自举、再 migrate deploy
       DATABASE_URL: 'file:/data/aurora.db'
-      # 上传落盘目录，由 /media/[...path] Route Handler 动态服务，不受 public/ 快照限制
+      # 媒体唯一目录：上传落这里，start.sh 每次启动把镜像里的 media-seed/ 幂等补齐到这里，
+      # /media/[...path] Route Handler 也只读这里（不再有 public/ 第二来源）
       MEDIA_DIR: '/app/storage/media'
       # 站点绝对地址：sitemap / OG / 结构化数据 / Better Auth 回跳都以此为准
       NEXT_PUBLIC_SITE_URL: '${NEXT_PUBLIC_SITE_URL:-https://example.com}'

@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "predev": "node scripts/sync-media.mjs",
+    "sync:media": "node scripts/sync-media.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

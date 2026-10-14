@@ -4,7 +4,7 @@
 
 - 前台：`/[locale]`（`zh` / `en`，默认中文）、`/works`、`/works/[slug]`、`/recommendations`
 - 后台：`/admin`（Better Auth 登录保护，界面仅中文）
-- 数据：Prisma 7 + SQLite，唯一内容源；构建期预渲染 + 标签化按需重渲染（ISR）
+- 数据：Prisma 7 + SQLite，唯一内容源；前台运行期渲染（`force-dynamic`），读取用 `unstable_cache` + 标签失效在进程内复用
 - 部署：单容器 Docker（Next.js `output: 'standalone'` + `node server.js`）
 
 ## 技术栈
@@ -16,7 +16,7 @@
 | 样式 | Tailwind CSS 4（`@theme` 设计 token） |
 | 内容 | Prisma 7 + SQLite（MDX/JSON 退役为 seed 夹具） |
 | 认证 | Better Auth（账号密码 + Prisma adapter） |
-| i18n | next-intl（`[locale]` 路由段，全预渲染） |
+| i18n | next-intl（`[locale]` 路由段，双语全量） |
 | 动效 | GSAP + @gsap/react + ScrollTrigger（仅签名动效 + 统一入场） |
 | 媒体 | next/image（AVIF/WebP）、sharp（主色调提取）、点击式视频嵌入 |
 
@@ -39,7 +39,7 @@ cp .env.example .env        # macOS / Linux
 npm run db:migrate
 npm run db:seed
 
-# 4. 起开发服务器（默认 http://localhost:3000）
+# 4. 起开发服务器（默认 http://localhost:3000；predev 会先把 media-seed/ 灌进 storage/media）
 npm run dev
 ```
 
@@ -51,8 +51,9 @@ npm run dev
 
 | 命令 | 作用 |
 |---|---|
-| `npm run dev` | 开发服务器 |
-| `npm run build` | 生产构建（预渲染全部静态页） |
+| `npm run dev` | 开发服务器（启动前自动补齐种子媒体） |
+| `npm run sync:media` | 把 `media-seed/` 幂等灌进 `MEDIA_DIR`（只补缺失、不覆盖） |
+| `npm run build` | 生产构建（standalone；前台为运行期渲染，不铺静态页） |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm run db:migrate` | 开发期建表/迁移 |
@@ -81,12 +82,12 @@ docker compose ps
 docker compose logs -f aurora
 ```
 
-访问 `http://<服务器IP>:3000`。每次启动时 `scripts/start.sh` 会：卷内数据目录为空 → 从镜像内的种子库自举 → `prisma migrate deploy` → 按 `ADMIN_EMAIL`/`ADMIN_PASSWORD` 幂等建号（已存在则跳过）→ 媒体卷为空 → 从镜像内 `.media-seed` 补齐既有封面图 → `node server.js`。
+访问 `http://<服务器IP>:3000`。每次启动时 `scripts/start.sh` 会：卷内数据目录为空 → 从镜像内的种子库自举 → `prisma migrate deploy` → 按 `ADMIN_EMAIL`/`ADMIN_PASSWORD` 幂等建号（已存在则跳过）→ `node scripts/sync-media.mjs` 把镜像里的 `media-seed/` 幂等补齐进 `MEDIA_DIR` → `node server.js`。
 
 ### 数据持久化与备份
 
 - `aurora-db` 卷：SQLite 库（内容 + 账号）。备份即导出该卷里的 `aurora.db`。
-- `aurora-media` 卷：`storage/media`，后台上传的图片落此处，由 Route Handler 动态服务。
+- `aurora-media` 卷：`storage/media`，也是 `/media/*` 的唯一目录 —— 后台上传落这里，仓库内置的种子图（`media-seed/`）每次启动补齐到这里，Route Handler 只从这里读。
 - 升级镜像：`docker compose up -d --build`，迁移对新表结构幂等执行，卷数据保留。
 
 ### 反向代理
@@ -118,7 +119,7 @@ server {
    - `AUTH_SECRET` —— 会话签名密钥（与域名无关，但上线前务必换强随机值）
 4. 重建：`docker compose up -d --build`（`AUTH_SECRET` 变更后需重新登录）。
 
-> `NEXT_PUBLIC_SITE_URL` 由 compose 的 `build.args` 同时注入构建期与运行期：sitemap / robots / canonical 是构建期烘焙（robots 永不重生成、sitemap 仅在后台改作品后重渲染），**改域名必须重新 build**，只重启容器不生效；`BETTER_AUTH_URL` / `AUTH_SECRET` 为运行期读取，仅需重启容器。
+> `NEXT_PUBLIC_SITE_URL` 由 compose 的 `build.args` 同时注入构建期与运行期：它会被内联进产物（robots / OG / canonical 依赖它），**改域名必须重新 build**，只重启容器不生效；`BETTER_AUTH_URL` / `AUTH_SECRET` 为运行期读取，仅需重启容器。`/sitemap.xml` 已改为运行期生成，跟随库内容。
 
 ## 上线检查清单（Phase 5）
 
@@ -128,5 +129,5 @@ server {
 - [ ] `/sitemap.xml`、`/robots.txt` 可访问且双语 URL 与 `hreflang`（含 `x-default`）完整
 - [ ] 移动端 375px 逐页布局无溢出；图片有主色占位、无白块闪烁
 - [ ] Lighthouse（移动端）实测：LCP < 2.5s、CLS < 0.1、INP < 200ms
-- [ ] 后台登录后作品/推荐/资料增删改，前台即时重渲染
+- [ ] 后台登录后作品/推荐/资料增删改，前台刷新即见最新库内容
 - [ ] 已对 `aurora-db` / `aurora-media` 卷配置备份

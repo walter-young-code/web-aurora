@@ -23,17 +23,8 @@ npx prisma migrate deploy
 # 账户自举：按 ADMIN_EMAIL/ADMIN_PASSWORD 幂等创建管理员（已存在或未配置则跳过）
 node ./scripts/init-admin.mjs
 
-# 媒体目录自举：MEDIA_DIR 挂的是空卷时，镜像内置的封面/头像会被遮蔽，
-# 故首次运行把纯净副本 .media-seed 灌进去，保证既有作品图片照常可访问。
-MEDIA_PATH="${MEDIA_DIR:-./storage/media}"
-case "$MEDIA_PATH" in
-  /*) : ;;
-  *) MEDIA_PATH="/app/$MEDIA_PATH" ;;
-esac
-if [ -d /app/storage/.media-seed ] && [ ! -e "$MEDIA_PATH/works" ]; then
-  mkdir -p "$MEDIA_PATH"
-  cp -a /app/storage/.media-seed/. "$MEDIA_PATH/"
-  echo "[start] 首次运行：已从镜像种子媒体初始化 $MEDIA_PATH"
-fi
+# 媒体目录补齐：MEDIA_DIR 是唯一对外的 /media/* 目录，挂空卷时镜像里的种子图会被遮蔽，
+# 故每次启动调 sync-media.mjs 幂等灌入（只补缺失、不覆盖卷里已有的文件）。
+node ./scripts/sync-media.mjs || echo "[start] 媒体种子补齐失败，前后台图可能 404，继续启动"
 
 exec node server.js
