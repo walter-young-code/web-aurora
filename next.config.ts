@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
   // 前台走运行期渲染（见 src/app/[locale]/layout.tsx 的 force-dynamic）：内容以 SQLite 为准，
-  // 不做构建期预渲染，避开「预渲染产物打进镜像 + 标签失效只在内存」导致重启后内容回退。
+  // 不做构建期预渲染，也不做进程内缓存，每次请求直读库，后台保存即生效。
   // standalone 产物用于单容器 Docker 部署，镜像只拷这份最小运行时。
   output: 'standalone',
   // Server Action 默认 body 上限 1MB，媒体上传（图片≤20MB、本地视频≤200MB，见 lib/media.ts）会触发 413。

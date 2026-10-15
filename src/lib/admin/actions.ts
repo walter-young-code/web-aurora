@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath, updateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import { jstr, jparse } from '@/lib/repo';
@@ -27,15 +27,11 @@ async function guard() {
 }
 
 /**
- * 内容变更后：按 tag 即时失效缓存，并清掉路由/客户端缓存。
- * 采用 updateTag 而非 revalidateTag：Next 16 文档明确指出 Server Action 内
- * 需要即时过期时应用 updateTag（具备 read-your-own-writes 语义），
- * 保证同一次提交后紧接的页面读取能看到新值。
+ * 内容变更后清除客户端路由缓存（Router Cache），确保浏览器下次导航/刷新
+ * 拿到最新 RSC payload。数据层已无进程缓存（content.ts 每次直读 SQLite），
+ * 因此不需要 updateTag/revalidateTag。
  */
 function revalidateSite() {
-  updateTag('works');
-  updateTag('recommendations');
-  updateTag('profile');
   revalidatePath('/[locale]', 'layout');
   revalidatePath('/sitemap.xml');
 }
@@ -386,7 +382,6 @@ export async function upsertSettings(input: SettingsInput): Promise<ActionResult
     await cleanupOldHeroImage(oldHero).catch(() => {});
   }
 
-  updateTag('settings');
   revalidatePath('/[locale]', 'layout');
   return { ok: true };
 }
