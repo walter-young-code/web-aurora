@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Space_Grotesk } from 'next/font/google';
+import { connection } from 'next/server';
 import '../globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -23,9 +24,8 @@ const spaceGrotesk = Space_Grotesk({
 
 /**
  * 前台一律运行期渲染（不用构建期预渲染 + ISR）。
- * 原因：standalone 容器里预渲染 HTML 来自镜像（烘焙的是构建期种子库），而标签失效记录只存在于
- * 进程内存；重渲染结果不回写磁盘。改成运行期渲染后，配合 content.ts 每次直读 SQLite（无进程缓存），
- * 前台内容与库始终一致，后台保存即生效。
+ * connection() 是 Next 16 最强的动态信号：构建时静态分析到它就绝对不会预渲染，
+ * 配合 content.ts 每次直读 SQLite（无进程缓存），后台保存即生效。
  */
 export const dynamic = 'force-dynamic';
 
@@ -75,6 +75,8 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
+  // 强制运行期渲染：构建时检测到此调用即标记为 dynamic，不会生成静态 HTML
+  await connection();
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   // 显式钉住 locale：next-intl 的静态 API（generateMetadata 等）据此取值，不做请求期协商
