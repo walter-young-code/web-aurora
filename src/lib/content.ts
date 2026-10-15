@@ -80,11 +80,18 @@ export const getSettings = unstable_cache(
   { tags: ['settings'], ...CACHE },
 );
 
+/**
+ * 内部非缓存 DB 查询：所有 works 相关的 unstable_cache 函数都直接调这个，
+ * 避免嵌套 unstable_cache（Next 16 中外层缓存命中时不会执行内层函数，
+ * 若外层 tag 失效有任何时序偏差就会返回陈旧数据）。
+ */
+async function fetchAllWorks(): Promise<Work[]> {
+  const rows = await prisma.work.findMany({ orderBy: { order: 'asc' } });
+  return rows.map(rowToWork);
+}
+
 export const getWorks = unstable_cache(
-  async (): Promise<Work[]> => {
-    const rows = await prisma.work.findMany({ orderBy: { order: 'asc' } });
-    return rows.map(rowToWork);
-  },
+  async (): Promise<Work[]> => fetchAllWorks(),
   ['works@v2'],
   { tags: ['works'], ...CACHE },
 );
@@ -101,7 +108,7 @@ export const getWork = unstable_cache(
 /** 首页精选：featured 优先，其余按 order 补足到 limit 件 */
 export const getHomeWorks = unstable_cache(
   async (limit = 6): Promise<Work[]> => {
-    const works = await getWorks();
+    const works = await fetchAllWorks();
     const featured = works.filter((work) => work.featured);
     const rest = works.filter((work) => !work.featured);
     return [...featured, ...rest].slice(0, limit);
@@ -113,7 +120,7 @@ export const getHomeWorks = unstable_cache(
 /** 上一篇/下一篇按 order 环形相邻；作品 <=1 时无相邻，避免单作品时上一篇/下一篇指向自身 */
 export const getAdjacentWorks = unstable_cache(
   async (slug: string): Promise<{ previous: Work | undefined; next: Work | undefined }> => {
-    const works = await getWorks();
+    const works = await fetchAllWorks();
     // 环形取模在 length===1 时 (0-1+1)%1=(0+1)%1=0，两侧都会回到当前作品本身，
     // 详情页会出现两个指向自己的导航链接，不符合语义。直接短路为空。
     if (works.length <= 1) return { previous: undefined, next: undefined };
@@ -136,7 +143,7 @@ export type TagOption = {
 /** 从作品数据聚合出语言无关的标签筛选项，按首次出现顺序 */
 export const getTagOptions = unstable_cache(
   async (): Promise<TagOption[]> => {
-    const works = await getWorks();
+    const works = await fetchAllWorks();
     const byKey = new Map<string, TagOption>();
     for (const work of works) {
       work.tagKeys.forEach((key, i) => {
